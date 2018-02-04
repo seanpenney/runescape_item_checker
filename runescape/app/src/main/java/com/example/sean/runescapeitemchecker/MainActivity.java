@@ -15,6 +15,16 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.util.Iterator;
+
 public class MainActivity extends AppCompatActivity {
     TextView mTextView = null;
 
@@ -25,7 +35,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mTextView = (TextView) findViewById(R.id.textbox);
 
+        loadItemsJson();
+
         sendNetworkRequest();
+    }
+
+    private void loadItemsJson() {
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(createJsonFromResource());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Iterator<?> keys = jsonObj.keys();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            
+        }
+
+        //Log.i("MainActivity", "items json: " + jsonObj.toString());
     }
 
     private void sendNetworkRequest() {
@@ -56,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private void parseResponse(String response) {
         JSONObject jsonObj = null;
         try {
-             jsonObj = new JSONObject(response);
+            jsonObj = new JSONObject(response);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -85,5 +114,31 @@ public class MainActivity extends AppCompatActivity {
 
         mTextView.setText("Yew log current price: " + price);
 
+    }
+
+    private String createJsonFromResource() {
+        String jsonString = "";
+        InputStream is = getResources().openRawResource(R.raw.items_rs3);
+
+        Writer writer = new StringWriter();
+        char[] buffer = new char[1024];
+        try {
+            Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            int n;
+            while ((n = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, n);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        jsonString = writer.toString();
+
+        return jsonString;
     }
 }
